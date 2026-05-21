@@ -1,0 +1,88 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>The Scoring Company · Trust Verification</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="hdr">
+  <a class="logo" href="index.html">
+    <div class="logo-mark"><i class="fas fa-shield-halved"></i></div>
+    <span class="logo-text">Scoring<span>Co.</span></span>
+  </a>
+  <nav class="nav-links">
+    <a href="about.html" class="nav-link">About</a>
+    <a href="how-it-works.html" class="nav-link">How it works</a>
+    <a href="partner.html" class="nav-link">Partner</a>
+    <a href="contact.html" class="nav-link">Contact</a>
+  </nav>
+  <div class="hdr-right">
+    <a href="admin.html" style="text-decoration:none;"><button class="btn-ghost"><i class="fas fa-lock" style="font-size:11px;"></i> Admin</button></a>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <div class="hero-eyebrow"><i class="fas fa-circle-check" style="font-size:10px;"></i> Kenya's Business Registry</div>
+    <h1>Verify before<br><em>you trust</em></h1>
+    <p>Search any business by name, social handle, or product. See real reviews and verified details.</p>
+  </div>
+
+  <div class="search-card">
+    <div class="stabs">
+      <button class="stab active" id="tab-biz" onclick="switchTab('biz')"><i class="fas fa-store"></i> Find a Business</button>
+      <button class="stab" id="tab-prod" onclick="switchTab('prod')"><i class="fas fa-tag"></i> Find by Product or Service</button>
+    </div>
+    <div class="spanel active" id="panel-biz">
+      <div class="chips-label">Search via platform</div>
+      <div class="chips" id="platform-chips">
+        <button class="chip sel" data-p="name" onclick="selectPlatform(this)"><i class="fas fa-building"></i> Business Name</button>
+        <button class="chip" data-p="tiktok" onclick="selectPlatform(this)"><i class="fab fa-tiktok"></i> TikTok</button>
+        <button class="chip" data-p="instagram" onclick="selectPlatform(this)"><i class="fab fa-instagram"></i> Instagram</button>
+        <button class="chip" data-p="facebook" onclick="selectPlatform(this)"><i class="fab fa-facebook"></i> Facebook</button>
+        <button class="chip" data-p="whatsapp" onclick="selectPlatform(this)"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+        <button class="chip" data-p="jiji" onclick="selectPlatform(this)"><i class="fas fa-store-alt"></i> Jiji</button>
+        <button class="chip" data-p="other" onclick="selectPlatform(this)"><i class="fas fa-ellipsis"></i> Other</button>
+      </div>
+      <div class="s-row">
+        <div class="s-wrap"><i class="fas fa-magnifying-glass"></i><input class="s-input" id="biz-input" type="text" placeholder="Enter business name or badge number…"></div>
+        <button class="btn-search" id="biz-btn">Search</button>
+      </div>
+    </div>
+    <div class="spanel" id="panel-prod">
+      <div class="s-row">
+        <div class="s-wrap"><i class="fas fa-magnifying-glass"></i><input class="s-input" id="prod-input" type="text" placeholder="e.g. phone repair, tailoring, electronics…"></div>
+        <button class="btn-search" id="prod-btn">Search</button>
+      </div>
+      <div class="suggestions" id="prod-sugs"></div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="s-verified">—</div><div class="stat-l">Verified</div></div>
+    <div class="stat"><div class="stat-n" id="s-reviews">—</div><div class="stat-l">Reviews</div></div>
+    <div class="stat"><div class="stat-n" id="s-reports">—</div><div class="stat-l">Reports</div></div>
+  </div>
+
+  <div id="res">
+    <div class="res-hdr">
+      <div class="res-title"><span id="res-title">Results</span><span class="res-count" id="res-count">0</span></div>
+      <button class="btn-tiny" onclick="clearRes()"><i class="fas fa-xmark"></i> Clear</button>
+    </div>
+    <div class="vcards" id="vcards"></div>
+  </div>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
