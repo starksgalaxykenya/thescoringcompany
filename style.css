@@ -235,7 +235,118 @@ body {
   justify-content: center;
   gap: 12px;
 }
-
+/* Enhanced certificate styles */
+.cert-status-badge {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.cert-status-badge.active {
+  background: var(--green-bg);
+  color: var(--green);
+  border: 1px solid var(--green-b);
+}
+.cert-status-badge.expired {
+  background: var(--red-bg);
+  color: var(--red);
+  border: 1px solid var(--red-b);
+}
+.cert-mbox-large {
+  max-width: 700px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.cert-badge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg);
+  padding: 10px 15px;
+  border-radius: var(--r);
+  margin: 15px 0;
+  border: 1px solid var(--border);
+}
+.cert-number {
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 14px;
+}
+.cert-status {
+  font-weight: bold;
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+}
+.cert-status.active {
+  background: var(--green-bg);
+  color: var(--green);
+}
+.cert-status.expired {
+  background: var(--red-bg);
+  color: var(--red);
+}
+.cert-dates {
+  display: flex;
+  justify-content: space-between;
+  background: var(--surface);
+  padding: 8px 12px;
+  border-radius: var(--r);
+  font-size: 12px;
+  border: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.cert-details-full {
+  text-align: left;
+  margin-top: 20px;
+  border-top: 1px solid var(--border);
+  padding-top: 15px;
+}
+.cert-details-full h4 {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 12px 0 6px;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.cert-details-full p {
+  margin: 5px 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.cert-locations {
+  margin: 5px 0 0 20px;
+  font-size: 12px;
+}
+.cert-locations li {
+  margin: 3px 0;
+}
+.cert-print-date {
+  font-size: 10px;
+  color: var(--text-3);
+  text-align: center;
+  margin-top: 20px;
+  border-top: 1px dashed var(--border);
+  padding-top: 12px;
+}
+@media print {
+  .hdr, .stats, .search-card, .res-hdr, .acts, .rform, .cert-footer button, .cert-close, .btn-cert, .cert-status-badge {
+    display: none !important;
+  }
+  .moverlay {
+    position: relative;
+    background: white;
+    backdrop-filter: none;
+  }
+  .cert-mbox-large {
+    max-width: 100%;
+    box-shadow: none;
+    border: 1px solid #ccc;
+  }
+}
 /* Responsive touches */
 @media (max-width: 560px) {
   .location-item {
