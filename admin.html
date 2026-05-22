@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScoringCo · Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+<style>
+:root {
+  --bg:       #F4F4EF;
+  --surf:     #FFFFFF;
+  --border:   #E2E2DC;
+  --border2:  #CECEC8;
+  --tx:       #18181A;
+  --tx2:      #5C5C60;
+  --tx3:      #A0A09A;
+  --green:    #15803D;
+  --green-bg: #F0FDF4;
+  --green-b:  #BBF7D0;
+  --red:      #DC2626;
+  --red-bg:   #FEF2F2;
+  --red-b:    #FECACA;
+  --amber:    #B45309;
+  --amber-bg: #FFFBEB;
+  --amber-b:  #FDE68A;
+  --blue:     #1D4ED8;
+  --blue-bg:  #EFF6FF;
+  --blue-b:   #BFDBFE;
+  --side-w:   224px;
+  --top-h:    58px;
+  --r:        10px;
+  --r-lg:     14px;
+  --r-pill:   999px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+body {
+  font-family:'Plus Jakarta Sans',sans-serif;
+  background:var(--bg);
+  background-image:radial-gradient(circle,#C8C8C2 1px,transparent 1px);
+  background-size:24px 24px;
+  color:var(--tx);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* Sidebar */
+.sidebar {
+  position:fixed;top:0;left:0;bottom:0;
+  width:var(--side-w);
+  background:var(--surf);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  z-index:300;
+  overflow-y:auto;
+}
+.sb-logo {
+  padding:18px 20px 16px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+  text-decoration:none;color:var(--tx);
+}
+.sb-mark {
+  width:32px;height:32px;border-radius:8px;
+  background:var(--tx);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.sb-mark i{color:var(--surf);font-size:13px;}
+.sb-brand{font-size:14px;font-weight:700;letter-spacing:-0.02em;line-height:1.1;}
+.sb-brand small{display:block;font-size:10px;font-weight:500;color:var(--tx3);text-transform:uppercase;letter-spacing:0.06em;margin-top:1px;}
+.sb-nav{padding:12px 10px;flex:1;}
+.sb-section-label{
+  font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.08em;color:var(--tx3);
+  padding:0 10px;margin:12px 0 5px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:var(--r);
+  cursor:pointer;transition:all .15s;
+  font-size:13.5px;font-weight:500;color:var(--tx2);
+  border:none;background:none;width:100%;text-align:left;
+  margin-bottom:2px;text-decoration:none;
+}
+.nav-item i{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+.nav-item:hover{background:var(--bg);color:var(--tx);}
+.nav-item.active{background:var(--tx);color:var(--surf);}
+.sb-badge{
+  margin-left:auto;background:var(--red);color:#fff;
+  font-size:10px;font-weight:700;
+  padding:1px 6px;border-radius:var(--r-pill);
+  min-width:18px;text-align:center;
+}
+.nav-item.active .sb-badge{background:rgba(255,255,255,0.25);}
+.sb-footer{
+  padding:12px 16px;border-top:1px solid var(--border);
+  font-size:12px;color:var(--tx3);display:flex;align-items:center;gap:8px;
+}
+.sb-footer a{color:var(--tx3);text-decoration:none;}
+.sb-footer a:hover{color:var(--tx);}
+
+/* Main */
+.main{margin-left:var(--side-w);min-height:100vh;}
+.topbar{
+  position:sticky;top:0;z-index:200;
+  height:var(--top-h);
+  background:rgba(244,244,239,0.9);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 1.75rem;
+}
+.topbar-left{display:flex;align-items:center;gap:12px;}
+.page-title{font-size:16px;font-weight:700;color:var(--tx);letter-spacing:-0.02em;}
+.page-sub{font-size:12px;color:var(--tx3);font-weight:400;background:var(--bg);border:1px solid var(--border);padding:3px 10px;border-radius:var(--r-pill);}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:0 16px;height:36px;border-radius:var(--r-pill);
+  font-family:inherit;font-size:13px;font-weight:600;
+  cursor:pointer;transition:all .18s;border:1px solid;white-space:nowrap;
+}
+.btn-primary{background:var(--tx);color:var(--surf);border-color:var(--tx);}
+.btn-primary:hover{opacity:.82;}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--tx2);}
+.btn-ghost:hover{background:var(--surf);color:var(--tx);border-color:var(--border2);}
+.btn-sm{height:30px;padding:0 12px;font-size:12px;}
+.btn-danger{background:transparent;border-color:var(--red-b);color:var(--red);}
+.btn-danger:hover{background:var(--red-bg);}
+.btn-success{background:transparent;border-color:var(--green-b);color:var(--green);}
+.btn-success:hover{background:var(--green-bg);}
+
+/* Content */
+.content{padding:1.75rem;max-width:1400px;}
+.section{display:none;}
+.section.active{display:block;}
+
+/* Stat cards */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:1.5rem;}
+.stat-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.2rem 1.3rem;display:flex;align-items:flex-start;gap:14px;}
+.stat-icon{width:40px;height:40px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.si-green{background:var(--green-bg);color:var(--green);}
+.si-red{background:var(--red-bg);color:var(--red);}
+.si-amber{background:var(--amber-bg);color:var(--amber);}
+.si-blue{background:var(--blue-bg);color:var(--blue);}
+.stat-body{flex:1;}
+.stat-n{font-size:26px;font-weight:800;color:var(--tx);letter-spacing:-0.04em;line-height:1;}
+.stat-l{font-size:12px;font-weight:500;color:var(--tx3);margin-top:4px;text-transform:uppercase;letter-spacing:0.04em;}
+
+/* Charts */
+.chart-grid{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:1.5rem;}
+.chart-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem;}
+.chart-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.3rem 1.4rem;overflow:hidden;}
+.chart-card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;}
+.chart-title{font-size:14px;font-weight:700;color:var(--tx);}
+.chart-sub{font-size:12px;color:var(--tx3);margin-top:2px;}
+.chart-wrap canvas{max-height:220px;}
+.chart-wrap.donut canvas{max-height:200px;max-width:200px;margin:0 auto;}
+
+/* Table */
+.table-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:1.5rem;}
+.table-hdr{padding:1rem 1.3rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.table-hdr-left{display:flex;align-items:center;gap:10px;}
+.table-title{font-size:14px;font-weight:700;color:var(--tx);}
+.tcount{background:var(--bg);border:1px solid var(--border);color:var(--tx3);font-size:11px;font-weight:700;padding:2px 9px;border-radius:var(--r-pill);}
+.search-bar{display:flex;align-items:center;gap:7px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-pill);padding:0 12px;height:33px;}
+.search-bar:focus-within{border-color:var(--border2);background:var(--surf);}
+.search-bar i{color:var(--tx3);font-size:12px;}
+.search-bar input{background:none;border:none;outline:none;font-family:inherit;font-size:13px;color:var(--tx);width:180px;}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:var(--bg);}
+thead th{padding:9px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--tx3);border-bottom:1px solid var(--border);white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .12s;}
+tbody tr:hover{background:var(--bg);}
+td{padding:12px 14px;font-size:13px;color:var(--tx2);vertical-align:middle;}
+td.td-name{font-weight:600;color:var(--tx);}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:var(--r-pill);font-size:11px;font-weight:700;white-space:nowrap;}
+.b-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-b);}
+.b-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-b);}
+.b-amber{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-b);}
+.b-blue{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-b);}
+.b-gray{background:var(--bg);color:var(--tx3);border:1px solid var(--border);}
+.td-actions{display:flex;align-items:center;gap:6px;}
+.table-empty{text-align:center;padding:3rem 1rem;color:var(--tx3);}
+.table-empty i{font-size:1.8rem;margin-bottom:10px;display:block;}
+
+/* Slide Panel */
+.panel-overlay{position:fixed;inset:0;background:rgba(24,24,26,.45);backdrop-filter:blur(3px);z-index:500;opacity:0;pointer-events:none;transition:opacity .25s;}
+.panel-overlay.open{opacity:1;pointer-events:all;}
+.panel{position:fixed;top:0;right:0;bottom:0;width:600px;max-width:100vw;background:var(--surf);border-left:1px solid var(--border);box-shadow:-16px 0 48px rgba(0,0,0,.1);transform:translateX(100%);transition:transform .28s;z-index:501;display:flex;flex-direction:column;overflow:hidden;}
+.panel.open{transform:translateX(0);}
+.panel-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.panel-head h2{font-size:16px;font-weight:700;color:var(--tx);}
+.panel-head p{font-size:12px;color:var(--tx3);margin-top:2px;}
+.btn-icon{width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--tx2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;}
+.btn-icon:hover{background:var(--bg);color:var(--tx);border-color:var(--border2);}
+.panel-body{flex:1;overflow-y:auto;padding:1.3rem 1.4rem;}
+.form-section{margin-bottom:1.5rem;}
+.form-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--tx3);padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:1rem;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.form-row.full{grid-template-columns:1fr;}
+.field{display:flex;flex-direction:column;gap:5px;}
+label{font-size:12px;font-weight:600;color:var(--tx2);}
+label .req{color:var(--red);margin-left:2px;}
+input[type=text],input[type=email],input[type=tel],input[type=url],input[type=date],textarea,select{
+  width:100%;height:38px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r);color:var(--tx);font-family:inherit;font-size:13.5px;padding:0 12px;outline:none;transition:all .15s;
+}
+input:focus,textarea:focus,select:focus{background:var(--surf);border-color:var(--border2);box-shadow:0 0 0 3px rgba(0,0,0,.05);}
+textarea{height:auto;min-height:72px;padding:9px 12px;resize:vertical;}
+.field-hint{font-size:11px;color:var(--tx3);}
+.platform-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.platform-field{background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;}
+.platform-field:focus-within{border-color:var(--border2);background:var(--surf);}
+.platform-field-label{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;margin-bottom:5px;}
+.platform-field input{height:30px;background:transparent;border:none;padding:0;font-size:13px;}
+.panel-foot{padding:14px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;background:var(--bg);}
+.modal-overlay{position:fixed;inset:0;background:rgba(24,24,26,.5);backdrop-filter:blur(4px);z-index:600;display:flex;align-items:center;justify-content:center;padding:1.5rem;}
+.modal{background:var(--surf);border:1px solid var(--border);border-radius:var(--r-lg);max-width:440px;width:100%;padding:1.6rem;animation:mIn .2s ease;}
+@keyframes mIn{from{opacity:0;transform:scale(.97);}to{opacity:1;transform:scale(1);}}
+.modal h3{font-size:16px;font-weight:700;color:var(--tx);margin-bottom:6px;}
+.modal p{font-size:13px;color:var(--tx2);line-height:1.55;margin-bottom:1.2rem;}
+.modal-btns{display:flex;gap:8px;}
+.rev-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r-lg);padding:1.1rem 1.3rem;margin-bottom:10px;}
+.rev-biz{font-size:14px;font-weight:700;color:var(--tx);}
+.rev-stars{color:#D97706;font-size:13px;}
+.rev-text{font-size:13px;color:var(--tx2);line-height:1.55;margin-top:5px;}
+.rev-meta{font-size:11px;color:var(--tx3);margin-top:5px;}
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--tx);color:var(--surf);padding:10px 18px;border-radius:var(--r-pill);font-size:13.5px;font-weight:500;z-index:9999;display:flex;align-items:center;gap:8px;animation:tIn .25s ease;}
+@keyframes tIn{from{opacity:0;transform:translateX(-50%) translateY(8px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+.spin{width:24px;height:24px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--tx);animation:sp .65s linear infinite;display:inline-block;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.empty{text-align:center;padding:3rem;color:var(--tx3);}
+.av{width:32px;height:32px;border-radius:var(--r);background:var(--tx);color:var(--surf);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%);}
+  .main{margin-left:0;}
+  .chart-grid,.chart-grid2{grid-template-columns:1fr;}
+  .panel{width:100%;}
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+  <a class="sb-logo" href="index.html">
+    <div class="sb-mark"><i class="fas fa-shield-halved"></i></div>
+    <div class="sb-brand">ScoringCo<small>Admin Panel</small></div>
+  </a>
+  <div class="sb-nav">
+    <div class="sb-section-label">Main</div>
+    <button class="nav-item active" onclick="showSection('overview',this)"><i class="fas fa-chart-pie"></i> Overview</button>
+    <button class="nav-item" onclick="showSection('businesses',this)"><i class="fas fa-store"></i> Businesses <span class="sb-badge" id="biz-count-badge">—</span></button>
+    <div class="sb-section-label">Moderation</div>
+    <button class="nav-item" onclick="showSection('reports',this)"><i class="fas fa-flag"></i> Fraud Reports <span class="sb-badge" id="rep-count-badge">—</span></button>
+    <button class="nav-item" onclick="showSection('reviews',this)"><i class="fas fa-star"></i> Reviews</button>
+    <div class="sb-section-label">System</div>
+    <button class="nav-item" onclick="showSection('settings',this)"><i class="fas fa-gear"></i> Settings</button>
+  </div>
+  <div class="sb-footer"><i class="fas fa-arrow-left"></i> <a href="index.html">Back to public site</a></div>
+</nav>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left"><div class="page-title" id="page-title">Overview</div><span class="page-sub" id="page-sub">Dashboard</span></div>
+    <div class="topbar-right">
+      <button class="btn btn-ghost btn-sm" onclick="refreshAll()"><i class="fas fa-rotate-right"></i> Refresh</button>
+      <button class="btn btn-primary btn-sm" onclick="openPanel()"><i class="fas fa-plus"></i> Add Business</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Overview -->
+    <div class="section active" id="sec-overview">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-icon si-green"><i class="fas fa-store-alt"></i></div><div class="stat-body"><div class="stat-n" id="ov-biz">—</div><div class="stat-l">Verified Businesses</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-blue"><i class="fas fa-star"></i></div><div class="stat-body"><div class="stat-n" id="ov-revs">—</div><div class="stat-l">Total Reviews</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-red"><i class="fas fa-flag"></i></div><div class="stat-body"><div class="stat-n" id="ov-reps">—</div><div class="stat-l">Fraud Reports</div></div></div>
+        <div class="stat-card"><div class="stat-icon si-amber"><i class="fas fa-clock"></i></div><div class="stat-body"><div class="stat-n" id="ov-pending">—</div><div class="stat-l">Pending Reports</div></div></div>
+      </div>
+      <div class="chart-grid">
+        <div class="chart-card"><div class="chart-card-hdr"><div><div class="chart-title">Business Registrations</div><div class="chart-sub">Cumulative verified businesses</div></div></div><div class="chart-wrap"><canvas id="chart-registrations"></canvas></div></div>
+        <div class="chart-card"><div class="chart-card-hdr"><div><div class="chart-title">Report Status</div><div class="chart-sub">Breakdown of fraud reports</div></div></div><div class="chart-wrap donut"><canvas id="chart-reports"></canvas></div></div>
+      </div>
+      <div class="chart-grid2">
+        <div class="chart-card"><div class="chart-card-hdr"><div><div class="chart-title">Rating Distribution</div><div class="chart-sub">All community reviews</div></div></div><div class="chart-wrap"><canvas id="chart-ratings"></canvas></div></div>
+        <div class="chart-card"><div class="chart-card-hdr"><div><div class="chart-title">Top Product Categories</div><div class="chart-sub">Most listed products/services</div></div></div><div class="chart-wrap"><canvas id="chart-products"></canvas></div></div>
+      </div>
+    </div>
+
+    <!-- Businesses -->
+    <div class="section" id="sec-businesses">
+      <div class="table-card">
+        <div class="table-hdr">
+          <div class="table-hdr-left"><div class="table-title">All Businesses</div><span class="tcount" id="biz-tcount">0</span></div>
+          <div style="display:flex;gap:8px;"><div class="search-bar"><i class="fas fa-magnifying-glass"></i><input type="text" id="biz-search" placeholder="Search…" oninput="filterBizTable()"></div><button class="btn btn-primary btn-sm" onclick="openPanel()"><i class="fas fa-plus"></i> Add Business</button></div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table><thead><tr><th>Business</th><th>Badge</th><th>Products</th><th>Contact</th><th>Platforms</th><th>Certificate</th><th>Actions</th></tr></thead><tbody id="biz-tbody"><tr><td colspan="7"><div class="empty"><div class="spin"></div></div></td></tr></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reports -->
+    <div class="section" id="sec-reports">
+      <div class="table-card">
+        <div class="table-hdr">
+          <div class="table-hdr-left"><div class="table-title">Fraud Reports</div><span class="tcount" id="rep-tcount">0</span></div>
+          <div style="display:flex;gap:8px;"><div class="search-bar"><i class="fas fa-magnifying-glass"></i><input type="text" id="rep-search" placeholder="Search…" oninput="filterRepTable()"></div><select onchange="filterRepTable()" id="rep-filter" style="height:33px;"><option value="">All Status</option><option value="pending">Pending</option><option value="reviewed">Reviewed</option><option value="resolved">Resolved</option></select></div>
+        </div>
+        <div style="overflow-x:auto;"><table><thead><tr><th>Business</th><th>Description</th><th>Evidence</th><th>Reported</th><th>Status</th><th>Actions</th></tr></thead><tbody id="rep-tbody"><tr><td colspan="6"><div class="empty"><div class="spin"></div></div></td></tr></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- Reviews -->
+    <div class="section" id="sec-reviews">
+      <div style="display:flex;justify-content:space-between;margin-bottom:1rem;"><div class="table-title">All Community Reviews</div><div class="search-bar"><i class="fas fa-magnifying-glass"></i><input type="text" id="rev-search" placeholder="Search reviews…" oninput="filterRevs()"></div></div>
+      <div id="rev-list"></div>
+    </div>
+
+    <!-- Settings -->
+    <div class="section" id="sec-settings">
+      <div class="settings-card" style="background:var(--surf);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;">
+        <div class="settings-row" style="display:flex;justify-content:space-between;padding:1rem 1.3rem;border-bottom:1px solid var(--border);"><div><div class="settings-label">Auto-approve Reviews</div><div class="settings-desc">Publish reviews immediately</div></div><label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
+        <div class="settings-row" style="display:flex;justify-content:space-between;padding:1rem 1.3rem;border-bottom:1px solid var(--border);"><div><div class="settings-label">Email Alerts on Reports</div><div class="settings-desc">Send email for new fraud reports</div></div><label class="toggle"><input type="checkbox"><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
+        <div class="settings-row" style="display:flex;justify-content:space-between;padding:1rem 1.3rem;border-bottom:1px solid var(--border);"><div><div class="settings-label">Public Registry Access</div><div class="settings-desc">Allow public search</div></div><label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
+        <div class="settings-row" style="display:flex;justify-content:space-between;padding:1rem 1.3rem;border-bottom:1px solid var(--border);"><div><div class="settings-label">Show Badge Numbers</div><div class="settings-desc">Display #SC badge publicly</div></div><label class="toggle"><input type="checkbox" checked><div class="toggle-track"></div><div class="toggle-thumb"></div></label></div>
+        <div class="settings-row" style="display:flex;justify-content:space-between;padding:1rem 1.3rem;"><div><div class="settings-label">Export All Businesses</div><div class="settings-desc">Download CSV</div></div><button class="btn btn-ghost btn-sm" onclick="exportCSV()"><i class="fas fa-download"></i> Export CSV</button></div>
+        <div class="settings-row" style="display:flex;justify-content:space-between;padding:1rem 1.3rem;"><div><div class="settings-label">Public Site</div><div class="settings-desc">Open verification page</div></div><a href="index.html" target="_blank"><button class="btn btn-ghost btn-sm"><i class="fas fa-arrow-up-right-from-square"></i> Open Site</button></a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Onboard/Edit Panel (includes all new fields) -->
+<div class="panel-overlay" id="panel-overlay" onclick="closePanel()"></div>
+<div class="panel" id="panel">
+  <div class="panel-head">
+    <div><h2 id="panel-title">Onboard Business</h2><p id="panel-subtitle">Add a new verified business to the registry</p></div>
+    <button class="btn-icon" onclick="closePanel()"><i class="fas fa-xmark"></i></button>
+  </div>
+  <div class="panel-body">
+    <input type="hidden" id="edit-id">
+    <!-- Basic Info -->
+    <div class="form-section"><div class="form-section-title">Basic Information</div>
+      <div class="form-row"><div class="field"><label>Business Name <span class="req">*</span></label><input type="text" id="f-name" placeholder="e.g. Nairobi Tech Shop"></div><div class="field"><label>Badge Number</label><input type="text" id="f-badge" placeholder="e.g. SC-00142"></div></div>
+      <div class="form-row full"><div class="field"><label>Description</label><textarea id="f-desc" placeholder="Brief description…"></textarea></div></div>
+      <div class="form-row full"><div class="field"><label>Products & Services</label><input type="text" id="f-products" placeholder="e.g. phones, repair, accessories"><span class="field-hint">Comma-separated</span></div></div>
+    </div>
+    <!-- Contact & Owner -->
+    <div class="form-section"><div class="form-section-title">Contact & Ownership</div>
+      <div class="form-row"><div class="field"><label>Phone(s)</label><input type="text" id="f-phones" placeholder="+2547XX, +2547YY (comma separated)"><span class="field-hint">Multiple numbers separated by comma</span></div><div class="field"><label>Email</label><input type="email" id="f-email" placeholder="hello@business.co.ke"></div></div>
+      <div class="form-row"><div class="field"><label>Owner Name</label><input type="text" id="f-ownerName" placeholder="Full name"></div><div class="field"><label>Contact Person</label><input type="text" id="f-contactPerson" placeholder="If different from owner"></div></div>
+      <div class="form-row full"><div class="field"><label>KRA PIN</label><input type="text" id="f-kraPin" placeholder="P000000000X"><span class="field-hint">Last 4 digits will be hidden publicly</span></div></div>
+    </div>
+    <!-- Locations -->
+    <div class="form-section"><div class="form-section-title">Business Locations (Multiple)</div>
+      <div class="field"><label>Locations (one per line)</label><textarea id="f-locations" placeholder="e.g. Tom Mboya St, Nairobi | https://maps.google.com/?q=...&#10;Moi Ave, Mombasa | https://maps.google.com/..." rows="3"></textarea><span class="field-hint">Format: Address | Google Maps URL (optional). Each line = one location.</span></div>
+    </div>
+    <!-- Payment & Policies -->
+    <div class="form-section"><div class="form-section-title">Payment & Policies</div>
+      <div class="form-row full"><div class="field"><label>Payment Details</label><textarea id="f-paymentDetails" placeholder="e.g. M-Pesa: 07XX, Bank Transfer: Equity, Cash" rows="2"></textarea><span class="field-hint">One method per line, optional details after colon</span></div></div>
+      <div class="form-row full"><div class="field"><label>Return Policy</label><textarea id="f-returnPolicy" placeholder="e.g. 7-day return for unused items"></textarea></div></div>
+      <div class="form-row full"><div class="field"><label>Terms & Conditions</label><textarea id="f-termsConditions" placeholder="T&C summary"></textarea></div></div>
+      <div class="form-row full"><div class="field"><label>Other Information</label><textarea id="f-otherInfo" placeholder="Any additional info…"></textarea></div></div>
+    </div>
+    <!-- Social & Web -->
+    <div class="form-section"><div class="form-section-title">Online Presence</div>
+      <div class="platform-grid">
+        <div class="platform-field"><div class="platform-field-label"><i class="fab fa-tiktok"></i> TikTok</div><input type="text" id="f-tiktok" placeholder="@username"></div>
+        <div class="platform-field"><div class="platform-field-label"><i class="fab fa-instagram"></i> Instagram</div><input type="text" id="f-instagram" placeholder="@username"></div>
+        <div class="platform-field"><div class="platform-field-label"><i class="fab fa-facebook"></i> Facebook</div><input type="text" id="f-facebook" placeholder="page name/URL"></div>
+        <div class="platform-field"><div class="platform-field-label"><i class="fab fa-whatsapp"></i> WhatsApp</div><input type="tel" id="f-whatsapp" placeholder="+2547XX"></div>
+        <div class="platform-field"><div class="platform-field-label"><i class="fas fa-store-alt"></i> Jiji</div><input type="text" id="f-jiji" placeholder="store link or name"></div>
+        <div class="platform-field"><div class="platform-field-label"><i class="fas fa-globe"></i> Website</div><input type="url" id="f-website" placeholder="https://..."></div>
+        <div class="platform-field"><div class="platform-field-label"><i class="fas fa-mobile-alt"></i> App Link</div><input type="url" id="f-appLink" placeholder="https://play.google.com/..."></div>
+      </div>
+    </div>
+    <!-- Business Process -->
+    <div class="form-section"><div class="form-section-title">Business Process</div>
+      <div class="field"><textarea id="f-businessProcess" placeholder="Describe how the business operates (e.g. ordering, delivery, support)"></textarea></div>
+    </div>
+    <!-- Certificate Management -->
+    <div class="form-section"><div class="form-section-title">Verification Certificate</div>
+      <div class="form-row"><div class="field"><label>Certificate Number (unique)</label><input type="text" id="f-certNumber" placeholder="e.g. SC-2025-00123"></div></div>
+      <div class="form-row"><div class="field"><label>Issue Date</label><input type="date" id="f-certIssueDate"></div><div class="field"><label>Expiry Date</label><input type="date" id="f-certExpiry"></div></div>
+      <div class="form-row full"><div class="field"><label>Registration Documents (URLs)</label><input type="text" id="f-regDocs" placeholder="Comma-separated URLs of uploaded PDFs/images"><span class="field-hint">Upload via Storage first, then paste URLs</span></div></div>
+      <div class="field"><button type="button" class="btn btn-ghost btn-sm" onclick="uploadDocFile()"><i class="fas fa-upload"></i> Upload Document</button><span id="upload-status" style="font-size:11px;margin-left:8px;"></span></div>
+    </div>
+  </div>
+  <div class="panel-foot">
+    <button class="btn btn-primary" id="save-btn" onclick="saveBusiness()" style="flex:1"><i class="fas fa-check"></i> <span id="save-btn-label">Save Business</span></button>
+    <button class="btn btn-ghost" onclick="closePanel()">Cancel</button>
+  </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey:"AIzaSyAaV4iJe0s2xpCxIjwiOPJQkfijoIjD68g",
+  authDomain:"the-scoring-company-64fa9.firebaseapp.com",
+  projectId:"the-scoring-company-64fa9",
+  storageBucket:"the-scoring-company-64fa9.firebasestorage.app",
+  messagingSenderId:"57710701062",
+  appId:"1:57710701062:web:18879fda753d603ac17187"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const storage = firebase.storage();
+
+let allVendors = [], allReports = [], allReviews = [], charts = {};
+
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  const titles={overview:'Overview',businesses:'Businesses',reports:'Fraud Reports',reviews:'Reviews',settings:'Settings'};
+  document.getElementById('page-title').textContent = titles[id];
+  document.getElementById('page-sub').textContent = id==='overview'?'Dashboard':id==='businesses'?'Registry':'Moderation';
+}
+
+function openPanel(vendor=null) {
+  clearForm();
+  if(vendor) {
+    document.getElementById('panel-title').textContent = 'Edit Business';
+    document.getElementById('panel-subtitle').textContent = 'Update all details including certificate';
+    document.getElementById('save-btn-label').textContent = 'Update Business';
+    document.getElementById('edit-id').value = vendor.id;
+    document.getElementById('f-name').value = vendor.businessName||'';
+    document.getElementById('f-badge').value = vendor.badgeNumber||'';
+    document.getElementById('f-desc').value = vendor.description||'';
+    document.getElementById('f-products').value = vendor.products||'';
+    document.getElementById('f-phones').value = (vendor.phones ? vendor.phones.join(', ') : (vendor.phone||''));
+    document.getElementById('f-email').value = vendor.email||'';
+    document.getElementById('f-ownerName').value = vendor.ownerName||'';
+    document.getElementById('f-contactPerson').value = vendor.contactPerson||'';
+    document.getElementById('f-kraPin').value = vendor.kraPin||'';
+    // locations: array of objects or strings
+    if(vendor.locations && Array.isArray(vendor.locations)) {
+      let locStr = vendor.locations.map(l => typeof l === 'object' ? (l.address + (l.mapUrl ? ' | '+l.mapUrl : '')) : l).join('\n');
+      document.getElementById('f-locations').value = locStr;
+    } else if(vendor.location) {
+      let mapUrl = vendor.googleMapsUrl ? ' | '+vendor.googleMapsUrl : '';
+      document.getElementById('f-locations').value = vendor.location + mapUrl;
+    } else document.getElementById('f-locations').value = '';
+    document.getElementById('f-paymentDetails').value = (vendor.paymentDetails && Array.isArray(vendor.paymentDetails)) ? vendor.paymentDetails.map(p => p.method + (p.details ? ': '+p.details : '')).join('\n') : (vendor.paymentDetails||'');
+    document.getElementById('f-returnPolicy').value = vendor.returnPolicy||'';
+    document.getElementById('f-termsConditions').value = vendor.termsConditions||'';
+    document.getElementById('f-otherInfo').value = vendor.otherInfo||'';
+    document.getElementById('f-tiktok').value = vendor.tiktok||'';
+    document.getElementById('f-instagram').value = vendor.instagram||'';
+    document.getElementById('f-facebook').value = vendor.facebook||'';
+    document.getElementById('f-whatsapp').value = vendor.whatsapp||'';
+    document.getElementById('f-jiji').value = vendor.jiji||'';
+    document.getElementById('f-website').value = vendor.website||'';
+    document.getElementById('f-appLink').value = vendor.appLink||'';
+    document.getElementById('f-businessProcess').value = vendor.businessProcess||'';
+    document.getElementById('f-certNumber').value = vendor.certificateNumber||'';
+    if(vendor.certificateIssueDate) document.getElementById('f-certIssueDate').value = vendor.certificateIssueDate.toDate().toISOString().slice(0,10);
+    if(vendor.certificateExpiry) document.getElementById('f-certExpiry').value = vendor.certificateExpiry.toDate().toISOString().slice(0,10);
+    document.getElementById('f-regDocs').value = (vendor.registrationDocs && Array.isArray(vendor.registrationDocs)) ? vendor.registrationDocs.join(', ') : (vendor.registrationDocs||'');
+  } else {
+    document.getElementById('panel-title').textContent = 'Onboard Business';
+    document.getElementById('panel-subtitle').textContent = 'Add a new verified business to the registry';
+    document.getElementById('save-btn-label').textContent = 'Save Business';
+    document.getElementById('edit-id').value = '';
+  }
+  document.getElementById('panel-overlay').classList.add('open');
+  document.getElementById('panel').classList.add('open');
+}
+function closePanel() {
+  document.getElementById('panel-overlay').classList.remove('open');
+  document.getElementById('panel').classList.remove('open');
+}
+function clearForm() {
+  document.querySelectorAll('#panel input, #panel textarea, #panel select').forEach(el => { if(el.id && el.id !== 'edit-id') el.value = ''; });
+  document.getElementById('edit-id').value = '';
+}
+async function uploadDocFile() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*,application/pdf';
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const status = document.getElementById('upload-status');
+    status.innerHTML = '<div class="spin" style="width:14px;height:14px;"></div> Uploading...';
+    try {
+      const ref = storage.ref(`admin_docs/${Date.now()}_${file.name}`);
+      const snapshot = await ref.put(file);
+      const url = await snapshot.ref.getDownloadURL();
+      const current = document.getElementById('f-regDocs').value.trim();
+      document.getElementById('f-regDocs').value = current ? current + ', ' + url : url;
+      status.innerHTML = '<i class="fas fa-check-circle"></i> Uploaded';
+      setTimeout(()=>status.innerHTML='',2000);
+    } catch(err) { status.innerHTML = 'Failed'; console.error(err); }
+  };
+  input.click();
+}
+async function saveBusiness() {
+  const name = document.getElementById('f-name').value.trim();
+  if(!name) return toast('Business name required','err');
+  const phonesRaw = document.getElementById('f-phones').value.trim();
+  let phonesArr = phonesRaw ? phonesRaw.split(',').map(p=>p.trim()).filter(Boolean) : [];
+  if(phonesArr.length===0 && document.getElementById('f-phone')) phonesArr = [document.getElementById('f-phone').value.trim()];
+  const locationsRaw = document.getElementById('f-locations').value.trim();
+  let locationsArr = [];
+  if(locationsRaw) {
+    locationsArr = locationsRaw.split('\n').map(line=>{
+      let [addr, mapUrl] = line.split('|').map(s=>s.trim());
+      if(!addr) return null;
+      return { address: addr, mapUrl: mapUrl || '' };
+    }).filter(Boolean);
+  }
+  const paymentRaw = document.getElementById('f-paymentDetails').value.trim();
+  let paymentArr = [];
+  if(paymentRaw) {
+    paymentArr = paymentRaw.split('\n').map(line=>{
+      let [method, details] = line.split(':').map(s=>s.trim());
+      if(!method) return null;
+      return { method, details: details||'' };
+    }).filter(Boolean);
+  }
+  const regDocsRaw = document.getElementById('f-regDocs').value.trim();
+  let regDocsArr = regDocsRaw ? regDocsRaw.split(',').map(u=>u.trim()).filter(Boolean) : [];
+  const data = {
+    businessName: name,
+    badgeNumber: document.getElementById('f-badge').value.trim(),
+    description: document.getElementById('f-desc').value.trim(),
+    products: document.getElementById('f-products').value.trim(),
+    phones: phonesArr,
+    email: document.getElementById('f-email').value.trim(),
+    ownerName: document.getElementById('f-ownerName').value.trim(),
+    contactPerson: document.getElementById('f-contactPerson').value.trim(),
+    kraPin: document.getElementById('f-kraPin').value.trim(),
+    locations: locationsArr,
+    paymentDetails: paymentArr,
+    returnPolicy: document.getElementById('f-returnPolicy').value.trim(),
+    termsConditions: document.getElementById('f-termsConditions').value.trim(),
+    otherInfo: document.getElementById('f-otherInfo').value.trim(),
+    tiktok: document.getElementById('f-tiktok').value.trim(),
+    instagram: document.getElementById('f-instagram').value.trim(),
+    facebook: document.getElementById('f-facebook').value.trim(),
+    whatsapp: document.getElementById('f-whatsapp').value.trim(),
+    jiji: document.getElementById('f-jiji').value.trim(),
+    website: document.getElementById('f-website').value.trim(),
+    appLink: document.getElementById('f-appLink').value.trim(),
+    businessProcess: document.getElementById('f-businessProcess').value.trim(),
+    certificateNumber: document.getElementById('f-certNumber').value.trim(),
+    registrationDocs: regDocsArr,
+    verified: true,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  const issueDate = document.getElementById('f-certIssueDate').value;
+  if(issueDate) data.certificateIssueDate = firebase.firestore.Timestamp.fromDate(new Date(issueDate));
+  const expiryDate = document.getElementById('f-certExpiry').value;
+  if(expiryDate) data.certificateExpiry = firebase.firestore.Timestamp.fromDate(new Date(expiryDate));
+
+  const editId = document.getElementById('edit-id').value;
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin" style="width:18px;height:18px;"></div> Saving...';
+  try {
+    if(editId) {
+      await db.collection('vendors').doc(editId).update(data);
+      toast('Business updated successfully','ok');
+    } else {
+      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('vendors').add(data);
+      toast('Business onboarded successfully','ok');
+    }
+    closePanel();
+    await loadAll();
+  } catch(e) { console.error(e); toast('Save failed','err'); }
+  finally { btn.disabled=false; btn.innerHTML='<i class="fas fa-check"></i> Save Business'; }
+}
+async function loadAll() {
+  try {
+    const vSnap = await db.collection('vendors').get();
+    allVendors = vSnap.docs.map(d => ({id:d.id, ...d.data()}));
+    const rSnap = await db.collection('fraudReports').orderBy('reportedAt','desc').get();
+    allReports = rSnap.docs.map(d => ({id:d.id, ...d.data()}));
+    allReviews = [];
+    for(const v of allVendors) {
+      const revSnap = await db.collection('vendors').doc(v.id).collection('reviews').orderBy('timestamp','desc').get();
+      revSnap.docs.forEach(d => allReviews.push({id:d.id, vendorId:v.id, vendorName:v.businessName, ...d.data()}));
+    }
+    renderAll();
+  } catch(e) { console.error(e); toast('Error loading data','err'); }
+}
+function renderAll() {
+  document.getElementById('biz-count-badge').textContent = allVendors.length;
+  document.getElementById('rep-count-badge').textContent = allReports.filter(r=>r.status==='pending').length;
+  document.getElementById('ov-biz').textContent = allVendors.length;
+  document.getElementById('ov-revs').textContent = allReviews.length;
+  document.getElementById('ov-reps').textContent = allReports.length;
+  document.getElementById('ov-pending').textContent = allReports.filter(r=>r.status==='pending').length;
+  renderBizTable();
+  renderRepTable();
+  renderRevList();
+  renderCharts();
+}
+function renderBizTable() {
+  const search = document.getElementById('biz-search').value.toLowerCase();
+  let list = search ? allVendors.filter(v=> (v.businessName||'').toLowerCase().includes(search) || (v.products||'').toLowerCase().includes(search)) : allVendors;
+  document.getElementById('biz-tcount').textContent = list.length;
+  const tbody = document.getElementById('biz-tbody');
+  if(!list.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><i class="fas fa-store-slash"></i><p>No businesses</p></div></td></tr>'; return; }
+  tbody.innerHTML = list.map(v => {
+    const init = (v.businessName||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const socials = [v.tiktok&&'<i class="fab fa-tiktok"></i>', v.instagram&&'<i class="fab fa-instagram"></i>', v.facebook&&'<i class="fab fa-facebook"></i>', v.whatsapp&&'<i class="fab fa-whatsapp"></i>', v.jiji&&'<i class="fas fa-store-alt"></i>', v.website&&'<i class="fas fa-globe"></i>'].filter(Boolean).join(' ');
+    const certValid = v.certificateExpiry && v.certificateExpiry.toDate() > new Date();
+    const certStatus = v.certificateNumber ? (certValid ? '<span class="badge b-green"><i class="fas fa-check-circle"></i> Active</span>' : '<span class="badge b-red">Expired</span>') : '<span class="badge b-gray">No cert</span>';
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:8px;"><div class="av">${init}</div><div><div class="td-name">${esc(v.businessName)}</div>${v.location?`<div style="font-size:11px;">${esc(v.location)}</div>`:''}</div></div></td>
+      <td>${v.badgeNumber?`<span class="badge b-blue">${esc(v.badgeNumber)}</span>`:'—'}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(v.products||'—')}</td>
+      <td>${v.phones ? v.phones.slice(0,2).join(', ') : (v.phone||'—')}</td>
+      <td><div style="display:flex;gap:5px;">${socials||'—'}</div></td>
+      <td>${certStatus}</td>
+      <td><div class="td-actions"><button class="btn btn-ghost btn-sm" onclick='openPanel(${JSON.stringify(v)})'><i class="fas fa-pencil"></i></button><button class="btn btn-danger btn-sm" onclick="confirmDelete('${v.id}','${esc(v.businessName)}')"><i class="fas fa-trash"></i></button></div></td>
+    </tr>`;
+  }).join('');
+}
+function filterBizTable() { renderBizTable(); }
+function renderRepTable() {
+  let list = [...allReports];
+  const q = document.getElementById('rep-search').value.toLowerCase();
+  const statusFilter = document.getElementById('rep-filter').value;
+  if(statusFilter) list = list.filter(r => (r.status||'pending') === statusFilter);
+  if(q) list = list.filter(r => (r.vendorName||'').toLowerCase().includes(q) || (r.description||'').toLowerCase().includes(q));
+  document.getElementById('rep-tcount').textContent = list.length;
+  const tbody = document.getElementById('rep-tbody');
+  if(!list.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><i class="fas fa-flag"></i><p>No reports</p></div></td></tr>'; return; }
+  tbody.innerHTML = list.map(r => {
+    const status = r.status||'pending';
+    const badge = {pending:'b-red',reviewed:'b-amber',resolved:'b-green'}[status]||'b-gray';
+    const date = r.reportedAt?.toDate?.().toLocaleDateString()||'Unknown';
+    return `<tr><td class="td-name">${esc(r.vendorName||'Unknown')}</td><td style="max-width:200px;">${esc((r.description||'').slice(0,80))}</td><td>${r.mediaUrl?`<a href="${esc(r.mediaUrl)}" target="_blank" class="btn btn-ghost btn-sm">View</a>`:'—'}</td><td>${date}</td><td><span class="badge ${badge}">${status}</span></td><td><div class="td-actions">${status==='pending'?`<button class="btn btn-success btn-sm" onclick="updateReportStatus('${r.id}','reviewed')"><i class="fas fa-eye"></i></button>`:status==='reviewed'?`<button class="btn btn-success btn-sm" onclick="updateReportStatus('${r.id}','resolved')"><i class="fas fa-check"></i></button>`:'<span class="badge b-gray">Done</span>'}</div></td></tr>`;
+  }).join('');
+}
+function filterRepTable() { renderRepTable(); }
+async function updateReportStatus(id, status) { try { await db.collection('fraudReports').doc(id).update({status}); toast('Status updated','ok'); await loadAll(); } catch(e) { toast('Failed','err'); } }
+function renderRevList() {
+  const q = document.getElementById('rev-search').value.toLowerCase();
+  let list = q ? allReviews.filter(r=> (r.vendorName||'').toLowerCase().includes(q) || (r.comment||'').toLowerCase().includes(q)) : allReviews;
+  const container = document.getElementById('rev-list');
+  if(!list.length) { container.innerHTML='<div class="empty"><i class="fas fa-star"></i><p>No reviews</p></div>'; return; }
+  container.innerHTML = list.map(r => `<div class="rev-card"><div class="rev-biz">${esc(r.vendorName)}</div><div class="rev-stars">${'★'.repeat(r.rating||0)}${'☆'.repeat(5-(r.rating||0))}</div><div class="rev-text">${esc(r.comment||'No comment')}</div><div class="rev-meta">${r.timestamp?.toDate?.().toLocaleDateString()||'Recently'}</div></div>`).join('');
+}
+function filterRevs() { renderRevList(); }
+function confirmDelete(id, name) {
+  const m = document.createElement('div');
+  m.className = 'modal-overlay';
+  m.innerHTML = `<div class="modal"><h3>Delete Business?</h3><p>Remove <strong>${esc(name)}</strong>? Irreversible.</p><div class="modal-btns"><button class="btn btn-danger" id="del-confirm">Delete</button><button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancel</button></div></div>`;
+  document.body.appendChild(m);
+  m.querySelector('#del-confirm').addEventListener('click', async () => { try { await db.collection('vendors').doc(id).delete(); toast('Deleted','ok'); m.remove(); await loadAll(); } catch(e){ toast('Delete failed','err'); } });
+  m.addEventListener('click', e=>{ if(e.target===m) m.remove(); });
+}
+function exportCSV() {
+  let headers = ['Business Name','Badge','Description','Products','Phones','Email','Owner','KRA PIN','Locations','Payment Methods','Return Policy','T&Cs','Other Info','Website','App Link','Certificate Number','Issue Date','Expiry Date','Registration Docs'];
+  let rows = allVendors.map(v => [
+    v.businessName, v.badgeNumber, v.description, v.products,
+    (v.phones||[]).join('; '), v.email, v.ownerName, v.kraPin,
+    (v.locations||[]).map(l=>l.address).join('; '),
+    (v.paymentDetails||[]).map(p=>p.method+(p.details?': '+p.details:'')).join('; '),
+    v.returnPolicy, v.termsConditions, v.otherInfo, v.website, v.appLink,
+    v.certificateNumber,
+    v.certificateIssueDate?.toDate().toISOString().slice(0,10),
+    v.certificateExpiry?.toDate().toISOString().slice(0,10),
+    (v.registrationDocs||[]).join('; ')
+  ].map(c=>`"${(c||'').replace(/"/g,'""')}"`));
+  let csv = [headers, ...rows].map(r=>r.join(',')).join('\n');
+  let a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download = 'scoringco-businesses.csv';
+  a.click();
+  toast('CSV exported','ok');
+}
+function renderCharts() {
+  const createChart = (id, config) => { if(charts[id]) charts[id].destroy(); const ctx=document.getElementById(id); if(ctx) charts[id]=new Chart(ctx,config); };
+  let monthly = {};
+  allVendors.forEach(v=>{ let d=v.createdAt?.toDate()||new Date(); let k=d.toLocaleString('default',{month:'short'}); monthly[k]=(monthly[k]||0)+1; });
+  let lastMonths = [];
+  for(let i=5;i>=0;i--){ let d=new Date(); d.setMonth(d.getMonth()-i); lastMonths.push(d.toLocaleString('default',{month:'short'})); }
+  let regData = lastMonths.map(m=>monthly[m]||0);
+  createChart('chart-registrations', {type:'line',data:{labels:lastMonths,datasets:[{label:'Businesses',data:regData.reduce((a,v,i)=>{a.push((a[i-1]||0)+v); return a;},[]),borderColor:'#18181A',fill:true,tension:.4}]},options:{responsive:true,plugins:{legend:{display:false}}}});
+  let pending=allReports.filter(r=>r.status==='pending').length, reviewed=allReports.filter(r=>r.status==='reviewed').length, resolved=allReports.filter(r=>r.status==='resolved').length;
+  createChart('chart-reports',{type:'doughnut',data:{labels:['Pending','Reviewed','Resolved'],datasets:[{data:[pending,reviewed,resolved],backgroundColor:['#DC2626','#B45309','#15803D']}]},options:{cutout:'68%',plugins:{legend:{position:'bottom'}}}});
+  let ratingDist=[0,0,0,0,0]; allReviews.forEach(r=>{ if(r.rating>=1&&r.rating<=5) ratingDist[r.rating-1]++; });
+  createChart('chart-ratings',{type:'bar',data:{labels:['1★','2★','3★','4★','5★'],datasets:[{data:ratingDist,backgroundColor:'#18181A',borderRadius:6}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,precision:0}}}});
+  let tags={}; allVendors.forEach(v=>(v.products||'').split(/[,;]+/).map(p=>p.trim().toLowerCase()).filter(Boolean).forEach(t=>tags[t]=(tags[t]||0)+1));
+  let top=Object.entries(tags).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  createChart('chart-products',{type:'bar',data:{labels:top.map(t=>t[0]),datasets:[{data:top.map(t=>t[1]),backgroundColor:'#18181A'}]},options:{indexAxis:'y',plugins:{legend:{display:false}},responsive:true}});
+}
+function refreshAll() { loadAll(); toast('Refreshed','ok'); }
+function toast(msg,type='ok'){ let t=document.createElement('div');t.className='toast';t.innerHTML=`<i class="fas ${type==='ok'?'fa-circle-check':'fa-circle-exclamation'}"></i> ${msg}`;document.body.appendChild(t);setTimeout(()=>t.remove(),3200);}
+function esc(s){ if(!s) return ''; return String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+loadAll();
+</script>
+</body>
+</html>
