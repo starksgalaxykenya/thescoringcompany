@@ -107,6 +107,149 @@ body {
   box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.05);
   overflow: hidden;
 }
+/* Additional styles for new vendor detail sections */
+
+/* Legal info blocks */
+.legal-blocks, .owner-info, .phones-list, .locations-list, .payments-list, .links-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+.legal-item, .phone-item, .location-item, .payment-item {
+  font-size: 13px;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.legal-item i, .phone-item i, .location-item i, .payment-item i {
+  width: 18px;
+  color: var(--text-3);
+}
+.doc-link, .maps-link {
+  color: var(--green);
+  text-decoration: none;
+  font-size: 12px;
+  margin-left: 4px;
+}
+.doc-link:hover, .maps-link:hover {
+  text-decoration: underline;
+}
+.location-item {
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--border);
+}
+.location-item:last-child {
+  border-bottom: none;
+}
+.maps-link {
+  margin-left: auto;
+}
+
+/* Certificate button and modal */
+.cert-section {
+  margin: 1rem 0 0.5rem;
+  text-align: center;
+}
+.btn-cert {
+  background: var(--text);
+  color: var(--surface);
+  border: none;
+  border-radius: var(--r-pill);
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+.btn-cert:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+.cert-mbox {
+  max-width: 520px;
+  text-align: center;
+  padding: 0;
+  overflow: hidden;
+}
+.cert-header {
+  background: var(--text);
+  color: var(--surface);
+  padding: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cert-header h2 {
+  font-size: 1.3rem;
+  margin: 0;
+  font-weight: 700;
+}
+.cert-close {
+  background: none;
+  border: none;
+  color: var(--surface);
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+}
+.cert-body {
+  padding: 1.8rem;
+}
+.cert-issuer {
+  color: var(--text-2);
+  margin-bottom: 1.5rem;
+  font-size: 13px;
+}
+.cert-details {
+  background: var(--bg);
+  border-radius: var(--r);
+  padding: 1rem;
+  text-align: left;
+  margin: 1rem 0;
+  border: 1px solid var(--border);
+}
+.cert-details p {
+  margin: 8px 0;
+  font-size: 13px;
+}
+.cert-status {
+  color: var(--green);
+  font-weight: bold;
+}
+.cert-seal {
+  font-size: 48px;
+  color: var(--green);
+  margin-top: 10px;
+}
+.cert-footer {
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* Responsive touches */
+@media (max-width: 560px) {
+  .location-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .maps-link {
+    margin-left: 0;
+  }
+  .cert-header h2 {
+    font-size: 1rem;
+  }
+}
 .stabs {
   display: flex; border-bottom: 1px solid var(--border);
   background: var(--bg);
