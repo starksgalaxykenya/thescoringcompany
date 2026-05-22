@@ -1,4 +1,4 @@
-// script.js (full original logic)
+// script.js (enhanced with extra vendor fields and certificate modal)
 let vendors = [];
 let activePlat = 'name';
 
@@ -149,6 +149,19 @@ function buildCard(v, reviews, avg) {
       </div>`).join('')
     : `<p class="no-revs">No reviews yet — be the first!</p>`;
 
+  // NEW SECTIONS (extra fields)
+  const legalInfo = renderLegalInfo(v);
+  const ownerInfo = renderOwnerInfo(v);
+  const phonesList = renderPhones(v);
+  const businessProcess = v.businessProcess ? `<div class="det-section"><div class="det-heading">Business Process</div><div class="iblock-val">${esc(v.businessProcess)}</div></div>` : '';
+  const locationsHtml = renderLocations(v);
+  const paymentDetailsHtml = renderPaymentDetails(v);
+  const returnPolicyHtml = v.returnPolicy ? `<div class="det-section"><div class="det-heading">Return Policy</div><div class="iblock-val">${esc(v.returnPolicy)}</div></div>` : '';
+  const termsHtml = v.termsConditions ? `<div class="det-section"><div class="det-heading">Terms & Conditions</div><div class="iblock-val">${esc(v.termsConditions)}</div></div>` : '';
+  const otherInfoHtml = v.otherInfo ? `<div class="det-section"><div class="det-heading">Additional Information</div><div class="iblock-val">${esc(v.otherInfo)}</div></div>` : '';
+  const linksHtml = renderLinks(v);
+  const certHtml = renderCertificateButton(v);
+
   return `
   <div class="vcard-top">
     <div class="vavatar">${esc(init)}</div>
@@ -172,12 +185,23 @@ function buildCard(v, reviews, avg) {
       <div class="iblock"><div class="iblock-label">Products & Services</div><div class="iblock-val">${v.products||'Not specified'}</div></div>
       <div class="iblock"><div class="iblock-label">Contact</div><div class="iblock-val">${v.phone?`<div>${esc(v.phone)}</div>`:''}${v.email?`<div><a href="mailto:${esc(v.email)}">${esc(v.email)}</a></div>`:''}${v.location?`<div>${esc(v.location)}</div>`:''}${!v.phone&&!v.email&&!v.location?'Not provided':''}</div></div>
     </div>
+    ${legalInfo}
+    ${ownerInfo}
+    ${phonesList}
+    ${businessProcess}
+    ${locationsHtml}
+    ${paymentDetailsHtml}
+    ${returnPolicyHtml}
+    ${termsHtml}
+    ${otherInfoHtml}
+    ${linksHtml}
     ${ptags?`<div class="ptags">${ptags}</div>`:''}
     <div class="det-section"><div class="det-heading">Community Reviews</div><div class="rev-list">${revHtml}</div></div>
     <div class="acts">
       <button class="btn-act btn-rate-act"><i class="fas fa-star" style="font-size:12px;"></i> Rate Business</button>
       <button class="btn-act btn-rep-act"><i class="fas fa-flag" style="font-size:12px;"></i> Report Fraud</button>
     </div>
+    ${certHtml}
     <div class="rform" id="rf-${v.id}">
       <h4>Rate ${esc(v.businessName)}</h4>
       <div class="spicker" id="sp-${v.id}">${[1,2,3,4,5].map(n=>`<i class="far fa-star" data-v="${n}"></i>`).join('')}</div>
@@ -188,6 +212,124 @@ function buildCard(v, reviews, avg) {
       </div>
     </div>
   </div>`;
+}
+
+// Helper functions for new fields
+function renderLegalInfo(v) {
+  if (!v.kraPin && !v.registrationDocs) return '';
+  let html = '<div class="det-section"><div class="det-heading">Legal Information</div><div class="legal-blocks">';
+  if (v.kraPin) {
+    let masked = v.kraPin.slice(0, -4) + '****';
+    html += `<div class="legal-item"><i class="fas fa-file-invoice"></i> KRA PIN: ${esc(masked)}</div>`;
+  }
+  if (v.registrationDocs) {
+    let docs = Array.isArray(v.registrationDocs) ? v.registrationDocs : [v.registrationDocs];
+    docs.forEach(doc => {
+      html += `<div class="legal-item"><i class="fas fa-file-pdf"></i> <a href="${esc(doc)}" target="_blank" class="doc-link">Registration Document</a></div>`;
+    });
+  }
+  html += '</div></div>';
+  return html;
+}
+
+function renderOwnerInfo(v) {
+  if (!v.ownerName && !v.contactPerson) return '';
+  let html = '<div class="det-section"><div class="det-heading">Owner / Contact Person</div><div class="owner-info">';
+  if (v.ownerName) html += `<div><i class="fas fa-user"></i> Owner: ${esc(v.ownerName)}</div>`;
+  if (v.contactPerson) html += `<div><i class="fas fa-user-tie"></i> Contact Person: ${esc(v.contactPerson)}</div>`;
+  html += '</div></div>';
+  return html;
+}
+
+function renderPhones(v) {
+  let phones = [];
+  if (v.phone) phones.push(v.phone);
+  if (v.phones && Array.isArray(v.phones)) phones.push(...v.phones);
+  if (phones.length === 0) return '';
+  let html = '<div class="det-section"><div class="det-heading">Phone Numbers</div><div class="phones-list">';
+  phones.forEach(p => {
+    html += `<div class="phone-item"><i class="fas fa-phone-alt"></i> ${esc(p)}</div>`;
+  });
+  html += '</div></div>';
+  return html;
+}
+
+function renderLocations(v) {
+  let locations = [];
+  if (v.location) locations.push({ address: v.location, mapUrl: v.googleMapsUrl });
+  if (v.locations && Array.isArray(v.locations)) locations.push(...v.locations);
+  if (locations.length === 0) return '';
+  let html = '<div class="det-section"><div class="det-heading">Business Locations</div><div class="locations-list">';
+  locations.forEach((loc, idx) => {
+    let addr = typeof loc === 'string' ? loc : loc.address;
+    let mapLink = (typeof loc === 'object' && loc.mapUrl) ? loc.mapUrl : `https://maps.google.com/?q=${encodeURIComponent(addr)}`;
+    html += `<div class="location-item">
+      <i class="fas fa-map-marker-alt"></i> ${esc(addr)}
+      <a href="${mapLink}" target="_blank" class="maps-link"><i class="fas fa-external-link-alt"></i> View on Map</a>
+    </div>`;
+  });
+  html += '</div></div>';
+  return html;
+}
+
+function renderPaymentDetails(v) {
+  let payments = [];
+  if (v.paymentDetails && Array.isArray(v.paymentDetails)) payments = v.paymentDetails;
+  else if (v.paymentDetails && typeof v.paymentDetails === 'string') payments = [{ method: v.paymentDetails }];
+  if (payments.length === 0) return '';
+  let html = '<div class="det-section"><div class="det-heading">Accepted Payment Methods</div><div class="payments-list">';
+  payments.forEach(p => {
+    let method = p.method || p;
+    let details = p.details ? ` (${esc(p.details)})` : '';
+    html += `<div class="payment-item"><i class="fas fa-credit-card"></i> ${esc(method)}${details}</div>`;
+  });
+  html += '</div></div>';
+  return html;
+}
+
+function renderLinks(v) {
+  let links = '';
+  if (v.website) links += `<div><i class="fas fa-globe"></i> <a href="${esc(v.website)}" target="_blank">Website</a></div>`;
+  if (v.appLink) links += `<div><i class="fas fa-mobile-alt"></i> <a href="${esc(v.appLink)}" target="_blank">Mobile App</a></div>`;
+  if (!links) return '';
+  return `<div class="det-section"><div class="det-heading">Links</div><div class="links-list">${links}</div></div>`;
+}
+
+function renderCertificateButton(v) {
+  return `<div class="cert-section"><button class="btn-cert" onclick="showCertificate('${v.id}')"><i class="fas fa-certificate"></i> View Verified Certificate</button></div>`;
+}
+
+// Certificate modal
+function showCertificate(vendorId) {
+  const vendor = vendors.find(v => v.id === vendorId);
+  if (!vendor) return;
+  const modal = document.createElement('div');
+  modal.className = 'moverlay';
+  const certDate = new Date().toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' });
+  modal.innerHTML = `
+    <div class="mbox cert-mbox">
+      <div class="cert-header">
+        <i class="fas fa-shield-alt"></i>
+        <h2>Verification Certificate</h2>
+        <button class="cert-close" onclick="this.closest('.moverlay').remove()">&times;</button>
+      </div>
+      <div class="cert-body">
+        <p class="cert-issuer">Issued by <strong>The Scoring Company</strong> · Kenya</p>
+        <div class="cert-details">
+          <p><strong>Business Name:</strong> ${esc(vendor.businessName)}</p>
+          ${vendor.badgeNumber ? `<p><strong>Verification #:</strong> ${esc(vendor.badgeNumber)}</p>` : ''}
+          <p><strong>Verification Date:</strong> ${certDate}</p>
+          <p><strong>Status:</strong> <span class="cert-status">✓ Verified & Trusted</span></p>
+        </div>
+        <div class="cert-seal"><i class="fas fa-check-circle"></i></div>
+      </div>
+      <div class="cert-footer">
+        <button class="btn-tiny" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+        <button class="btn-tiny" onclick="this.closest('.moverlay').remove()">Close</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
 }
 
 function buildSocials(v) {
