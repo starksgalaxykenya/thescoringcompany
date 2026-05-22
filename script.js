@@ -296,18 +296,79 @@ function renderLinks(v) {
 }
 
 function renderCertificateButton(v) {
-  return `<div class="cert-section"><button class="btn-cert" onclick="showCertificate('${v.id}')"><i class="fas fa-certificate"></i> View Verified Certificate</button></div>`;
+  const isExpired = v.certificateExpiry && v.certificateExpiry.toDate() < new Date();
+  const statusClass = isExpired ? 'expired' : 'active';
+  const statusText = isExpired ? 'Expired' : 'Active';
+  return `<div class="cert-section">
+    <button class="btn-cert" onclick="showCertificate('${v.id}')">
+      <i class="fas fa-certificate"></i> View Verified Certificate
+    </button>
+    <span class="cert-status-badge ${statusClass}">${statusText}</span>
+  </div>`;
 }
 
 // Certificate modal
 function showCertificate(vendorId) {
   const vendor = vendors.find(v => v.id === vendorId);
   if (!vendor) return;
+
+  const isExpired = vendor.certificateExpiry && vendor.certificateExpiry.toDate() < new Date();
+  const status = isExpired ? 'Expired' : 'Active';
+  const statusClass = isExpired ? 'expired' : 'active';
+  const issueDate = vendor.certificateIssueDate ? vendor.certificateIssueDate.toDate().toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not set';
+  const expiryDate = vendor.certificateExpiry ? vendor.certificateExpiry.toDate().toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not set';
+  const certNumber = vendor.certificateNumber || 'Not assigned';
+  const verificationDate = new Date().toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  // Helper to format arrays or objects nicely
+  const formatValue = (val) => {
+    if (!val) return 'Not provided';
+    if (Array.isArray(val)) return val.map(v => esc(v)).join(', ');
+    if (typeof val === 'object') return JSON.stringify(val);
+    return esc(val);
+  };
+
+  // Build detailed business info HTML
+  const businessDetails = `
+    <div class="cert-details-full">
+      <h4>Business Information</h4>
+      <p><strong>Business Name:</strong> ${esc(vendor.businessName)}</p>
+      <p><strong>Verification #:</strong> ${esc(vendor.badgeNumber || '—')}</p>
+      <p><strong>Description:</strong> ${esc(vendor.description || '—')}</p>
+      <p><strong>Products/Services:</strong> ${esc(vendor.products || '—')}</p>
+      
+      <h4>Contact & Social</h4>
+      <p><strong>Phone(s):</strong> ${formatValue(vendor.phones || vendor.phone)}</p>
+      <p><strong>Email:</strong> ${esc(vendor.email || '—')}</p>
+      <p><strong>Website:</strong> ${vendor.website ? `<a href="${esc(vendor.website)}" target="_blank">${esc(vendor.website)}</a>` : '—'}</p>
+      <p><strong>Instagram:</strong> ${esc(vendor.instagram || '—')}</p>
+      <p><strong>TikTok:</strong> ${esc(vendor.tiktok || '—')}</p>
+      <p><strong>Facebook:</strong> ${esc(vendor.facebook || '—')}</p>
+      <p><strong>WhatsApp:</strong> ${esc(vendor.whatsapp || '—')}</p>
+      
+      <h4>Legal & Owner</h4>
+      <p><strong>KRA PIN:</strong> ${vendor.kraPin ? vendor.kraPin.slice(0, -4) + '****' : '—'}</p>
+      <p><strong>Owner/Contact Person:</strong> ${esc(vendor.ownerName || vendor.contactPerson || '—')}</p>
+      
+      <h4>Location(s)</h4>
+      ${renderLocationsForCert(vendor)}
+      
+      <h4>Payment Methods</h4>
+      <p>${formatValue(vendor.paymentDetails)}</p>
+      
+      <h4>Return Policy & T&Cs</h4>
+      <p><strong>Return Policy:</strong> ${esc(vendor.returnPolicy || '—')}</p>
+      <p><strong>Terms & Conditions:</strong> ${esc(vendor.termsConditions || '—')}</p>
+      
+      <h4>Additional Info</h4>
+      <p>${esc(vendor.otherInfo || '—')}</p>
+    </div>
+  `;
+
   const modal = document.createElement('div');
   modal.className = 'moverlay';
-  const certDate = new Date().toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' });
   modal.innerHTML = `
-    <div class="mbox cert-mbox">
+    <div class="mbox cert-mbox cert-mbox-large">
       <div class="cert-header">
         <i class="fas fa-shield-alt"></i>
         <h2>Verification Certificate</h2>
@@ -315,13 +376,17 @@ function showCertificate(vendorId) {
       </div>
       <div class="cert-body">
         <p class="cert-issuer">Issued by <strong>The Scoring Company</strong> · Kenya</p>
-        <div class="cert-details">
-          <p><strong>Business Name:</strong> ${esc(vendor.businessName)}</p>
-          ${vendor.badgeNumber ? `<p><strong>Verification #:</strong> ${esc(vendor.badgeNumber)}</p>` : ''}
-          <p><strong>Verification Date:</strong> ${certDate}</p>
-          <p><strong>Status:</strong> <span class="cert-status">✓ Verified & Trusted</span></p>
+        <div class="cert-badge">
+          <div class="cert-number">Certificate № ${esc(certNumber)}</div>
+          <div class="cert-status ${statusClass}">${status}</div>
         </div>
-        <div class="cert-seal"><i class="fas fa-check-circle"></i></div>
+        <div class="cert-dates">
+          <span><strong>Issue Date:</strong> ${issueDate}</span>
+          <span><strong>Expiry Date:</strong> ${expiryDate}</span>
+        </div>
+        ${businessDetails}
+        <div class="cert-seal"><i class="fas fa-check-circle"></i> Verified by The Scoring Company</div>
+        <div class="cert-print-date">Generated on ${verificationDate}</div>
       </div>
       <div class="cert-footer">
         <button class="btn-tiny" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
@@ -332,6 +397,21 @@ function showCertificate(vendorId) {
   document.body.appendChild(modal);
 }
 
+// Helper for locations inside certificate
+function renderLocationsForCert(v) {
+  let locations = [];
+  if (v.location) locations.push({ address: v.location, mapUrl: v.googleMapsUrl });
+  if (v.locations && Array.isArray(v.locations)) locations.push(...v.locations);
+  if (locations.length === 0) return '<p>—</p>';
+  let html = '<ul class="cert-locations">';
+  locations.forEach(loc => {
+    let addr = typeof loc === 'string' ? loc : loc.address;
+    let mapLink = (typeof loc === 'object' && loc.mapUrl) ? loc.mapUrl : `https://maps.google.com/?q=${encodeURIComponent(addr)}`;
+    html += `<li>${esc(addr)} <a href="${mapLink}" target="_blank">(View Map)</a></li>`;
+  });
+  html += '</ul>';
+  return html;
+}
 function buildSocials(v) {
   const l = [];
   if(v.tiktok)    l.push(`<a class="spill tt" href="https://tiktok.com/@${encodeURIComponent(v.tiktok.replace('@',''))}" target="_blank"><i class="fab fa-tiktok"></i>${esc(v.tiktok)}</a>`);
