@@ -321,12 +321,19 @@ function showCertificate(vendorId) {
   const verificationDate = new Date().toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' });
 
   // Helper to format arrays or objects nicely
-  const formatValue = (val) => {
-    if (!val) return 'Not provided';
-    if (Array.isArray(val)) return val.map(v => esc(v)).join(', ');
-    if (typeof val === 'object') return JSON.stringify(val);
-    return esc(val);
-  };
+ const formatValue = (val) => {
+  if (!val) return 'Not provided';
+  if (Array.isArray(val)) {
+    // Convert each element to a safe string (stringify objects)
+    return val.map(v => {
+      if (v === null) return '';
+      if (typeof v === 'object') return JSON.stringify(v);
+      return esc(String(v));
+    }).join(', ');
+  }
+  if (typeof val === 'object') return JSON.stringify(val);
+  return esc(String(val));
+};
 
   // Build detailed business info HTML
   const businessDetails = `
@@ -501,8 +508,9 @@ function toast(msg, type='ok') {
 }
 
 function esc(s) {
-  if (!s) return '';
-  return s.replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  if (s === undefined || s === null) return '';
+  const str = String(s);
+  return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
 document.getElementById('biz-btn').addEventListener('click', bizSearch);
