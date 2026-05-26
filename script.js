@@ -321,12 +321,12 @@ function showCertificate(vendorId) {
   const verificationDate = new Date().toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' });
 
   // Helper to format arrays or objects nicely
- const formatValue = (val) => {
+const formatValue = (val) => {
   if (!val) return 'Not provided';
   if (Array.isArray(val)) {
-    // Convert each element to a safe string (stringify objects)
+    // Convert each element to a safe string (objects become JSON)
     return val.map(v => {
-      if (v === null) return '';
+      if (v === null || v === undefined) return '';
       if (typeof v === 'object') return JSON.stringify(v);
       return esc(String(v));
     }).join(', ');
@@ -508,11 +508,11 @@ function toast(msg, type='ok') {
 }
 
 function esc(s) {
+  // Convert any value to string safely
   if (s === undefined || s === null) return '';
   const str = String(s);
   return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
-
 document.getElementById('biz-btn').addEventListener('click', bizSearch);
 document.getElementById('prod-btn').addEventListener('click', prodSearch);
 document.getElementById('biz-input').addEventListener('keyup', e=>{ if(e.key==='Enter') bizSearch(); });
